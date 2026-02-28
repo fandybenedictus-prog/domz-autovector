@@ -19,6 +19,9 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 if 'RENDER' in os.environ:
     ALLOWED_HOSTS.append('.onrender.com')
 
+# Hugging Face Spaces
+ALLOWED_HOSTS.append('.hf.space')
+
 # ---------------------------------------------------------------------------
 # Applications
 # ---------------------------------------------------------------------------

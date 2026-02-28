@@ -32,8 +32,8 @@ COPY . /app/
 # Jalankan collectstatic untuk mengumpulkan file statis (gunakan temp secret key)
 RUN SECRET_KEY=temp-key-for-collectstatic python manage.py collectstatic --noinput
 
-# Ekspos port 8080 (standar untuk Cloud Run)
-EXPOSE 8080
+# Ekspos port 7860 (standar untuk Hugging Face Spaces)
+EXPOSE 7860
 
 # Jalankan server menggunakan gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "autovektor.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "autovektor.wsgi:application"]
