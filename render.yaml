@@ -1,0 +1,23 @@
+services:
+  # Web Service (Aplikasi Django)
+  - type: web
+    name: autovektor-web
+    env: python
+    region: singapore
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn autovektor.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: autovektor-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4
+
+  # PostgreSQL Database (Gratis di Render)
+  - type: pgo
+    name: autovektor-db
+    region: singapore
+    plan: free

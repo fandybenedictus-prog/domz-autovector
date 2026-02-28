@@ -1,0 +1,159 @@
+{% extends 'core/base.html' %}
+{% block title %}Tracer Studio{% endblock %}
+
+{% block extra_head %}
+<style>
+    #drop-zone {
+        border: 2px dashed rgba(99, 102, 241, 0.5);
+        transition: all 0.2s ease;
+    }
+
+    #drop-zone.drag-over {
+        border-color: #818cf8;
+        background: rgba(99, 102, 241, 0.1);
+    }
+
+    #preview-img {
+        display: none;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const input = document.getElementById('gambar-input');
+        const dropZone = document.getElementById('drop-zone');
+        const prevImg = document.getElementById('preview-img');
+        const dropPH = document.getElementById('drop-placeholder');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const form = document.getElementById('trace-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const spinner = document.getElementById('spinner');
+
+        input.addEventListener('change', () => {
+            const file = input.files[0];
+            if (!file) return;
+            showPreview(file);
+        });
+
+        function showPreview(file) {
+            const url = URL.createObjectURL(file);
+            prevImg.src = url;
+            prevImg.style.display = 'block';
+            dropPH.style.display = 'none';
+            fileInfo.classList.remove('hidden');
+            fileName.textContent = file.name;
+        }
+
+        window.clearFile = function () {
+            input.value = '';
+            prevImg.src = '';
+            prevImg.style.display = 'none';
+            dropPH.style.display = 'block';
+            fileInfo.classList.add('hidden');
+        };
+
+        // Drag & drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
+                showPreview(file);
+            }
+        });
+
+        // Submit → loading state
+        form.addEventListener('submit', () => {
+            btnText.textContent = 'Sedang memproses...';
+            spinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-16">
+
+    <!-- Header -->
+    <div class="text-center mb-10">
+        <h1 class="text-3xl font-bold mb-2">🎨 Tracer Studio</h1>
+        <p class="text-gray-400">Upload gambar JPG atau PNG untuk dikonversi ke SVG</p>
+    </div>
+
+    <!-- Saldo info -->
+    <div class="flex items-center justify-between glass rounded-xl px-5 py-3 mb-8 border border-white/10">
+        <span class="text-sm text-green-400 font-semibold animate-pulse">🎉 Promo Peluncuran Beta Aktif</span>
+        <span class="font-bold text-green-300">100% GRATIS</span>
+    </div>
+
+    <div class="glass rounded-2xl p-8 border border-white/10">
+        <form method="post" enctype="multipart/form-data" id="trace-form">
+            {% csrf_token %}
+
+            <!-- Drop Zone -->
+            <div id="drop-zone"
+                class="rounded-xl bg-gray-900/50 p-10 text-center cursor-pointer mb-6 hover:border-indigo-400 transition"
+                onclick="document.getElementById('gambar-input').click()">
+
+                <div id="drop-placeholder">
+                    <div class="text-5xl mb-3">📁</div>
+                    <p class="text-gray-300 font-medium mb-1">Klik atau seret gambar ke sini</p>
+                    <p class="text-gray-500 text-sm">JPG, PNG, WebP · Maks 20 MB</p>
+                </div>
+
+                <img id="preview-img" class="mx-auto max-h-64 rounded-lg object-contain" alt="Preview gambar" />
+
+                {{ form.gambar }}
+            </div>
+
+            {% if form.gambar.errors %}
+            <p class="text-red-400 text-sm mb-4">{{ form.gambar.errors.0 }}</p>
+            {% endif %}
+
+            <!-- File info -->
+            <div id="file-info" class="hidden mb-4 flex items-center gap-3 text-sm text-gray-400">
+                <span>📄</span>
+                <span id="file-name" class="truncate flex-1"></span>
+                <button type="button" onclick="clearFile()" class="text-red-400 hover:text-red-300 shrink-0">✕
+                    Hapus</button>
+            </div>
+
+            <button type="submit" id="submit-btn"
+                class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-base transition btn-glow flex items-center justify-center gap-2">
+                <span id="btn-text">⚡ Konversi ke SVG Sekarang</span>
+                <svg id="spinner" class="hidden animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+            </button>
+
+            <p class="text-center text-xs text-gray-500 mt-3">
+                Proses biasanya memakan waktu 5–30 detik tergantung ukuran gambar.
+                Anda dapat mendownload hasil akhir tanpa biaya.
+            </p>
+        </form>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-6 glass rounded-xl p-5 border border-white/10">
+        <h3 class="font-semibold text-sm mb-3 text-gray-300">💡 Tips untuk hasil terbaik:</h3>
+        <ul class="text-sm text-gray-400 space-y-1.5 list-disc list-inside">
+            <li>Gunakan gambar dengan kontras tinggi (logo, ilustrasi, teks)</li>
+            <li>Resolusi minimal 300×300 px disarankan</li>
+            <li>Foto realistik (wajah, foto alam) mungkin tidak menghasilkan SVG optimal</li>
+            <li>Format PNG dengan background transparan memberikan hasil paling bersih</li>
+        </ul>
+    </div>
+
+</div>
+{% endblock %}

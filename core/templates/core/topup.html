@@ -1,0 +1,182 @@
+{% extends 'core/base.html' %}
+{% block title %}Top-Up Saldo{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-12">
+
+    <div class="text-center mb-10">
+        <h1 class="text-3xl font-bold mb-2">💳 Top-Up Saldo</h1>
+        <p class="text-gray-400">Pilih nominal, transfer, lalu upload bukti bayar</p>
+    </div>
+
+    <!-- Current balance -->
+    <div class="glass rounded-xl px-5 py-4 mb-8 border border-white/10 flex items-center justify-between">
+        <span class="text-sm text-gray-400">Saldo saat ini</span>
+        <span class="text-xl font-bold text-indigo-300">Rp{{ saldo|floatformat:0 }}</span>
+    </div>
+
+    <!-- Rekening Info -->
+    <div class="glass rounded-2xl p-6 border border-amber-500/20 mb-8">
+        <h2 class="font-semibold text-amber-300 mb-4 flex items-center gap-2">
+            <span>🏦</span> Informasi Transfer
+        </h2>
+        <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-400">Bank</span>
+                <span class="font-semibold text-white">{{ rekening.bank }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-400">No. Rekening</span>
+                <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-white" id="norek">{{ rekening.nomor }}</span>
+                    <button type="button" onclick="copyNorek()"
+                        class="text-xs text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 rounded px-2 py-0.5 transition">
+                        Salin
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-400">Atas Nama</span>
+                <span class="font-semibold text-white">{{ rekening.nama }}</span>
+            </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-4">
+            ⚠️ Harap transfer sesuai nominal yang Anda pilih. Verifikasi manual biasanya 1–2 jam di jam kerja.
+        </p>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="glass rounded-2xl p-8 border border-white/10">
+        <h2 class="font-semibold text-lg mb-6">Konfirmasi Pembayaran</h2>
+
+        <form method="post" enctype="multipart/form-data" id="topup-form" novalidate>
+            {% csrf_token %}
+
+            <!-- Nominal -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-300 mb-3">{{ form.nominal.label }}</label>
+                <div id="nominal-grid" class="grid grid-cols-3 gap-3 mb-3">
+                    {% for val, label in form.nominal.field.choices %}
+                    <label class="nominal-card cursor-pointer">
+                        <input type="radio" name="nominal_radio" value="{{ val }}" class="hidden" />
+                        <div class="nominal-btn glass rounded-xl py-3 text-center text-sm font-semibold border border-white/10
+                                    hover:border-indigo-500/60 hover:bg-indigo-600/10 transition select-none">
+                            {{ label }}
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+                <!-- Hidden actual select untuk form submission -->
+                <div class="hidden">{{ form.nominal }}</div>
+                {% if form.nominal.errors %}
+                <p class="text-red-400 text-sm mt-1">{{ form.nominal.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Bukti Transfer upload -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-300 mb-3">{{ form.bukti_transfer.label }}</label>
+
+                <!-- Custom drop zone (actual file input is OUTSIDE and invisible) -->
+                <div id="bukti-drop" class="rounded-xl border-2 border-dashed border-gray-600 p-8 text-center cursor-pointer
+                            hover:border-indigo-500/60 transition"
+                    onclick="document.getElementById('bukti-input').click()">
+                    <div id="bukti-placeholder">
+                        <div class="text-4xl mb-2">📸</div>
+                        <p class="text-gray-400 text-sm">Klik untuk upload screenshot bukti transfer</p>
+                    </div>
+                    <img id="bukti-preview" class="hidden mx-auto max-h-48 rounded-lg object-contain"
+                        alt="Preview bukti" />
+                </div>
+
+                <!-- File input rendered by Django but hidden via position absolute off-screen.
+                     We do NOT use 'hidden' class so browser can still interact with it cleanly.
+                     required attribute is removed via JS to avoid browser validation block on hidden fields. -->
+                <div style="position:absolute; left:-9999px; top:-9999px;">
+                    {{ form.bukti_transfer }}
+                </div>
+
+                {% if form.bukti_transfer.errors %}
+                <p class="text-red-400 text-sm mt-2">{{ form.bukti_transfer.errors.0 }}</p>
+                {% endif %}
+
+                <!-- Custom error shown by JS when no file selected -->
+                <p id="bukti-error" class="hidden text-red-400 text-sm mt-2">⚠️ Harap upload bukti transfer terlebih
+                    dahulu.</p>
+            </div>
+
+            <button type="submit" id="topup-submit"
+                class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-base transition btn-glow">
+                📤 Kirim Konfirmasi Top-Up
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<!-- ── JavaScript – di bawah body agar DOM sudah ada ── -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // ── Nominal radio card selection ──────────────────────────
+        const nominalCards = document.querySelectorAll('.nominal-card');
+        const nominalSelect = document.querySelector('select[name="nominal"]');
+
+        nominalCards.forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.nominal-btn').forEach(b => {
+                    b.classList.remove('border-indigo-500', 'bg-indigo-600/20', 'text-indigo-300');
+                    b.classList.add('border-white/10');
+                });
+                const btn = card.querySelector('.nominal-btn');
+                btn.classList.add('border-indigo-500', 'bg-indigo-600/20', 'text-indigo-300');
+                btn.classList.remove('border-white/10');
+
+                const radio = card.querySelector('input[type=radio]');
+                radio.checked = true;
+                if (nominalSelect) nominalSelect.value = radio.value;
+            });
+        });
+
+        // ── Bukti transfer file input ─────────────────────────────
+        const buktiInput = document.getElementById('bukti-input');
+        const buktiPreview = document.getElementById('bukti-preview');
+        const buktiPH = document.getElementById('bukti-placeholder');
+        const buktiError = document.getElementById('bukti-error');
+
+        // Remove 'required' to avoid browser's native validation blocking hidden input
+        if (buktiInput) buktiInput.removeAttribute('required');
+
+        if (buktiInput) {
+            buktiInput.addEventListener('change', () => {
+                const file = buktiInput.files[0];
+                if (!file) return;
+                buktiPreview.src = URL.createObjectURL(file);
+                buktiPreview.classList.remove('hidden');
+                buktiPH.classList.add('hidden');
+                buktiError.classList.add('hidden');
+            });
+        }
+
+        // ── Custom form submit validation ────────────────────────
+        const form = document.getElementById('topup-form');
+        form.addEventListener('submit', function (e) {
+            if (!buktiInput || !buktiInput.files.length) {
+                e.preventDefault();
+                buktiError.classList.remove('hidden');
+                document.getElementById('bukti-drop').scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // ── Copy rekening ────────────────────────────────────────
+        window.copyNorek = function () {
+            const txt = document.getElementById('norek').textContent.trim();
+            navigator.clipboard.writeText(txt).then(() => {
+                alert('Nomor rekening berhasil disalin!');
+            });
+        };
+
+    });
+</script>
+
+{% endblock %}

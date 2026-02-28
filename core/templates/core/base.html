@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}AutoVektor{% endblock %} – Image to SVG Converter</title>
+  <meta name="description"
+    content="Konversi gambar JPG/PNG ke SVG vector profesional dengan harga Rp2.000 per unduhan." />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Gradient text utility */
+    .gradient-text {
+      background: linear-gradient(135deg, #818cf8, #a78bfa, #fb7185);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Glassmorphism card */
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Animated gradient background  */
+    .hero-bg {
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99, 102, 241, 0.25), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 90%, rgba(167, 139, 250, 0.15), transparent),
+        #0f0f13;
+    }
+
+    /* Smooth pulse glow on primary button */
+    @keyframes glow-pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+      }
+
+      50% {
+        box-shadow: 0 0 28px rgba(99, 102, 241, 0.9);
+      }
+    }
+
+    .btn-glow {
+      animation: glow-pulse 2.5s ease-in-out infinite;
+    }
+
+    /* Toast message animation */
+    @keyframes slide-in {
+      from {
+        transform: translateY(-1rem);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .toast {
+      animation: slide-in 0.3s ease;
+    }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-[#0f0f13] text-gray-100 min-h-screen flex flex-col hero-bg">
+
+  <!-- =========================================================
+       NAVBAR
+  ============================================================== -->
+  <nav class="glass sticky top-0 z-50 border-b border-white/10">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+
+      <!-- Logo -->
+      <a href="{% url 'home' %}" class="flex items-center gap-2 font-bold text-xl">
+        <span class="text-2xl">⚡</span>
+        <span class="gradient-text">AutoVektor</span>
+      </a>
+
+      <!-- Nav links -->
+      <div class="hidden md:flex items-center gap-1">
+        {% if user.is_authenticated %}
+        <a href="{% url 'studio' %}"
+          class="px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/10 transition">Studio</a>
+        <a href="{% url 'history' %}"
+          class="px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/10 transition">Riwayat</a>
+        <a href="{% url 'topup' %}"
+          class="px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/10 transition">Top-Up</a>
+        {% endif %}
+      </div>
+
+      <!-- Right side -->
+      <div class="flex items-center gap-3">
+        {% if user.is_authenticated %}
+        <!-- Saldo badge -->
+        <a href="{% url 'topup' %}"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 text-sm font-semibold hover:bg-indigo-600/30 transition">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.37 8 8.05 8 8c0-.05.07-.37.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.209.433.53.433.582 0 .052-.069.373-.433.582a2.305 2.305 0 01-.567.267z" />
+            <path fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
+              clip-rule="evenodd" />
+          </svg>
+          Rp{{ user.profile.saldo|floatformat:0 }}
+        </a>
+
+        <!-- User menu -->
+        <div class="relative group">
+          <button
+            class="flex items-center gap-2 px-3 py-1.5 rounded-full glass border border-white/10 text-sm font-medium hover:bg-white/10 transition">
+            <span class="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold">
+              {{ user.username|slice:":1"|upper }}
+            </span>
+            {{ user.username }}
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <!-- Dropdown -->
+          <div
+            class="absolute right-0 mt-2 w-44 glass rounded-xl border border-white/10 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <a href="{% url 'history' %}"
+              class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-t-xl transition">
+              📋 Riwayat Konversi
+            </a>
+            <a href="{% url 'topup' %}"
+              class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition">
+              💳 Top-Up Saldo
+            </a>
+            <hr class="border-white/10" />
+            <a href="{% url 'logout' %}"
+              class="flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-b-xl transition">
+              🚪 Keluar
+            </a>
+          </div>
+        </div>
+
+        {% else %}
+        <a href="{% url 'login' %}"
+          class="px-4 py-2 text-sm rounded-lg text-gray-300 hover:text-white transition">Masuk</a>
+        <a href="{% url 'register' %}"
+          class="px-4 py-2 text-sm rounded-lg bg-indigo-600 hover:bg-indigo-500 font-semibold transition btn-glow">Daftar
+          Gratis</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- =========================================================
+       TOAST MESSAGES
+  ============================================================== -->
+  {% if messages %}
+  <div class="max-w-6xl mx-auto px-4 pt-4 space-y-2 w-full">
+    {% for msg in messages %}
+    <div class="toast flex items-start gap-3 px-4 py-3 rounded-xl border
+      {% if msg.tags == 'error' %}bg-red-900/40 border-red-500/40 text-red-300
+      {% elif msg.tags == 'success' %}bg-green-900/40 border-green-500/40 text-green-300
+      {% else %}bg-amber-900/40 border-amber-500/40 text-amber-300{% endif %}">
+      <span class="text-lg mt-0.5">
+        {% if msg.tags == 'error' %}⚠️{% elif msg.tags == 'success' %}✅{% else %}ℹ️{% endif %}
+      </span>
+      <span class="text-sm">{{ msg }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- =========================================================
+       MAIN CONTENT
+  ============================================================== -->
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- =========================================================
+       FOOTER
+  ============================================================== -->
+  <footer class="border-t border-white/10 py-8 text-center text-sm text-gray-500">
+    <p>© 2025 <span class="gradient-text font-semibold">AutoVektor</span> — Image to SVG Converter</p>
+    <p class="mt-1 text-green-400/80">100% Gratis selama masa Beta!</p>
+  </footer>
+
+</body>
+
+</html>
